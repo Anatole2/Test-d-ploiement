@@ -1,0 +1,80 @@
+name: exo3
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environnement cible'
+        required: true
+        type: environment
+        default: 'staging'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.18.0
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: application
+          path: dist/
+          retention-days: 1
+
+  test:
+    name: Test (${{ matrix.os }} - Node ${{ matrix.node-version }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configurer Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm ci
+
+      - name: Télécharger l'artefact application
+        uses: actions/download-artifact@v7
+        with:
+          path: dist/
+
+      - run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist/
+
+      - run: |
+          echo "## Résumé du déploiement" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environnement cible** : \`${{ inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL de l'API** : ${{ vars.API_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit** : \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
