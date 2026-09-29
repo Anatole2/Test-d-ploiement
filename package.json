@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Tests passés avec succès\" && exit 0"
+    "test": "echo \"Tests passés avec succès\" && exit 0",
+    "build": "mkdir -p dist && echo \"console.log('build ok');\" > dist/index.js"
   },
   "repository": {
     "type": "git",
