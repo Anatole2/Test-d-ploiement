@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js et configurer le cache npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Lancer les tests
+        run: npm test
+
+      - name: Écrire dans le résumé GitHub Actions
+        if: always()
+        run: |
+          echo "### Résultat du workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- **Statut du job** : ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ref du commit** : \`${{ github.ref }}\` (\`${{ github.sha }}\`)" >> $GITHUB_STEP_SUMMARY

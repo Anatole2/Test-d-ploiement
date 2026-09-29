@@ -1,0 +1,21 @@
+{
+  "name": "test-d-ploiement",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Tests passés avec succès\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anatole2/Test-d-ploiement.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Anatole2/Test-d-ploiement/issues"
+  },
+  "homepage": "https://github.com/Anatole2/Test-d-ploiement#readme"
+}
