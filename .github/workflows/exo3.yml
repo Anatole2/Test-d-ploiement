@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environnement cible'
+        description: 'Environnement à déployer'
         required: true
-        type: environment
-        default: 'staging'
+        type: choice
+        options: [staging, production]
 
 permissions:
   contents: read
@@ -31,12 +31,12 @@ jobs:
         with:
           name: application
           path: dist/
+          if-no-files-found: error
           retention-days: 1
 
   test:
     name: Test (${{ matrix.os }} - Node ${{ matrix.node-version }})
     needs: build
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -44,6 +44,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         node-version: [20, 22]
 
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
 
@@ -51,12 +52,14 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - run: npm ci
 
       - name: Télécharger l'artefact application
         uses: actions/download-artifact@v7
         with:
+          name: application
           path: dist/
 
       - run: npm test
@@ -64,16 +67,22 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: 
+      name: ${{ inputs.environment }}
+      url: ${{ vars.API_URL }}
 
     steps:
-      - uses: actions/checkout@v7
-
       - uses: actions/download-artifact@v7
         with:
+          name: application
           path: dist/
 
-      - run: |
+      - name: Simuler le déploiement
+        run: echo "Déploiement vers ${{ vars.API_URL }}"
+        
+      - name: Produire le résumé
+        shell: bash
+        run: |
           echo "## Résumé du déploiement" >> $GITHUB_STEP_SUMMARY
           echo "- **Environnement cible** : \`${{ inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **URL de l'API** : ${{ vars.API_URL }}" >> $GITHUB_STEP_SUMMARY
